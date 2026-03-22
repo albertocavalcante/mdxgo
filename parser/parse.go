@@ -13,6 +13,11 @@ type Options struct {
 
 // Parse parses source bytes into a green CST rooted at a Document node.
 // The round-trip invariant holds: syntax.FullText(Parse(src, opts)) == string(src).
+//
+// Parsing proceeds in two passes:
+//  1. Block pass — splits source into block-level nodes (Paragraph, Heading, etc.)
+//  2. Inline pass — decomposes text content within Paragraph/Heading nodes into
+//     structured inline elements (CodeSpan, BackslashEscape, EmphasisSpan, etc.)
 func Parse(src []byte, opts Options) *syntax.GreenNode {
 	sc := newScanner(src)
 	b := newBuilder()
@@ -22,7 +27,10 @@ func Parse(src []byte, opts Options) *syntax.GreenNode {
 		opts:    opts,
 	}
 	p.parseDocument()
-	return b.finish()
+	blockTree := b.finish()
+
+	// Phase 2: inline parsing pass.
+	return parseInlines(blockTree, opts)
 }
 
 // blockParser drives the line-oriented first pass of CommonMark parsing.
