@@ -18,6 +18,14 @@ func main() {
 }
 ```
 
+## Status
+
+**v0.1 — Block-level parsing**
+
+The current release covers **block-level** CST parsing for CommonMark and MDX. All CommonMark block constructs are supported with 100% spec compliance (652/652 examples). MDX extensions include frontmatter and ESM declarations.
+
+Inline parsing (emphasis, code spans, links, images), full JSX tag parsing, MDX expressions, and tree modification APIs are planned for future releases — see [Roadmap](#roadmap).
+
 ## Why
 
 Existing Go Markdown parsers (goldmark, blackfriday) produce ASTs that discard whitespace, trivia, and exact source positions. This makes them unsuitable for:
