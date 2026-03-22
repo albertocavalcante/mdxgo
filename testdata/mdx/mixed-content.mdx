@@ -1,0 +1,89 @@
+---
+title: Mixed Content
+description: A page with all kinds of mixed content
+---
+
+import { Accordion, AccordionGroup } from '@components/Accordion'
+
+# Mixed Content Page
+
+Regular paragraph with **bold**, *italic*, `code`, and [links](https://example.com).
+
+## Lists
+
+- Bullet item 1
+- Bullet item 2
+- Bullet item 3
+
+1. Ordered item 1
+2. Ordered item 2
+3. Ordered item 3
+
+## Blockquote
+
+> This is a blockquote.
+> It can span multiple lines.
+
+## Thematic Break
+
+---
+
+## Headings
+
+### Third Level
+
+#### Fourth Level
+
+##### Fifth Level
+
+###### Sixth Level
+
+## Tables (raw text for now)
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+
+## Nested lists
+
+- Top level
+  - Second level
+    - Third level
+  - Back to second
+- Back to top
+
+## Links and images
+
+Check out [our docs](https://docs.example.com) for more info.
+
+![Alt text](https://example.com/image.png)
+
+## Code in lists
+
+- First, install:
+
+  ```bash
+  npm install package
+  ```
+
+- Then configure:
+
+  ```json
+  {"key": "value"}
+  ```
+
+## Accordion
+
+<AccordionGroup>
+  <Accordion title="Question 1">
+    Answer to question 1.
+  </Accordion>
+  <Accordion title="Question 2">
+    Answer to question 2 with `code` and **bold**.
+  </Accordion>
+</AccordionGroup>
+
+## Final paragraph
+
+That's all folks!

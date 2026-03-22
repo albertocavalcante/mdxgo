@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Test (Go ${{ matrix.go }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.24", "stable"]
+        os: [ubuntu-24.04, macos-15]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: ${{ matrix.go }}
+      - run: go build ./...
+      - run: go test -race -count=1 ./...
+      - run: go vet ./...
+
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: stable
+      - name: Fuzz round-trip (CommonMark)
+        run: go test -fuzz='^FuzzRoundTrip$' -fuzztime=30s ./parser
+      - name: Fuzz round-trip (MDX)
+        run: go test -fuzz='^FuzzRoundTripMDX$' -fuzztime=30s ./parser
+      - name: Fuzz width consistency
+        run: go test -fuzz='^FuzzWidthConsistency$' -fuzztime=15s ./parser
+      - name: Fuzz both modes
+        run: go test -fuzz='^FuzzBothModes$' -fuzztime=15s ./parser
+      - name: Fuzz from corpus
+        run: go test -fuzz='^FuzzFromCorpus$' -fuzztime=30s ./parser
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: stable
+      - run: go test -coverprofile=coverage.out -covermode=atomic ./...
+      - uses: codecov/codecov-action@4481f553995cc5011b158ce191746ac1a1d0f815  # v5.5.3
+        with:
+          files: coverage.out
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: stable
+      - run: go vet ./...
+      - name: Run golangci-lint
+        run: go tool golangci-lint run
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Check module tidy
+        run: go mod tidy && git diff --exit-code go.mod go.sum
+
+  actions-lint:
+    name: Actions Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: stable
+      - name: Lint workflows
+        working-directory: tools/lint
+        run: go tool actionlint ../../.github/workflows/*.yml
+      - name: Check action versions
+        working-directory: tools/lint
+        run: go tool pinact run --verify -c pinact.yaml
+      - name: Check workflow best practices
+        working-directory: tools/lint
+        run: go tool ghalint run -c ghalint.yaml

@@ -1,0 +1,74 @@
+---
+title: JSX Heavy
+---
+
+import { Note, Warning, Tip, Info } from '@components/Callouts'
+import { CodeBlock } from '@components/CodeBlock'
+import { Steps, Step } from '@components/Steps'
+import { CardGroup, Card } from '@components/Cards'
+
+# Getting Started
+
+<Note>
+  This is an important note with **bold** text and `inline code`.
+</Note>
+
+<Warning>
+  Be careful with this operation! It cannot be undone.
+
+  Multiple paragraphs inside JSX.
+</Warning>
+
+## Installation
+
+<Steps>
+  <Step title="Install Dependencies">
+    Run the following command:
+
+    ```bash
+    npm install @acme/sdk
+    ```
+  </Step>
+  <Step title="Configure">
+    Create a config file:
+
+    ```json
+    {
+      "apiKey": "your-key-here",
+      "endpoint": "https://api.example.com"
+    }
+    ```
+  </Step>
+  <Step title="Verify">
+    Check that everything works:
+
+    ```bash
+    npx acme verify
+    ```
+  </Step>
+</Steps>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api">
+    Explore the full API reference.
+  </Card>
+  <Card title="Examples" icon="book" href="/examples">
+    Browse example projects.
+  </Card>
+  <Card title="Community" icon="users" href="/community">
+    Join the community.
+  </Card>
+  <Card title="Support" icon="headset" href="/support">
+    Get help from our team.
+  </Card>
+</CardGroup>
+
+<Tip>
+  You can also use the CLI for quick access: `acme --help`
+</Tip>
+
+<Info>
+  For more details, see the [full documentation](/docs).
+</Info>
