@@ -143,17 +143,16 @@ func isInlineTextKind(k syntax.SyntaxKind) bool {
 }
 
 // containsInlineMarkup reports whether text contains any character that
-// might start an inline construct.
+// might start an inline construct. Uses a pre-computed lookup table
+// (inlineMarkupChars) for the fast path.
 func containsInlineMarkup(text string) bool {
 	for i := 0; i < len(text); i++ {
-		switch text[i] {
-		case '`', '\\', '&', '*', '_', '[', ']', '!', '<', '{', '\n', '\r':
+		if inlineMarkupChars[text[i]] {
 			return true
-		case ' ':
-			// Check for hard line break (2+ spaces before newline).
-			if i+1 < len(text) && (text[i+1] == '\n' || text[i+1] == '\r') {
-				return true
-			}
+		}
+		// Check for hard line break (2+ spaces before newline).
+		if text[i] == ' ' && i+1 < len(text) && (text[i+1] == '\n' || text[i+1] == '\r') {
+			return true
 		}
 	}
 	return false

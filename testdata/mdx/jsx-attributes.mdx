@@ -1,0 +1,82 @@
+---
+title: JSX Attribute Tests
+---
+
+import { Component } from './Component'
+
+# String Attributes
+
+<Component name="double quoted" />
+
+<Component name='single quoted' />
+
+<Component name="with \"escaped\" quotes" />
+
+<Component name='with \'escaped\' quotes' />
+
+<Component name="" />
+
+<Component name="multi word value with spaces" />
+
+# Boolean Attributes
+
+<Component disabled />
+
+<Component hidden readOnly autoFocus />
+
+<Component
+  disabled
+  hidden
+  readOnly
+/>
+
+# Expression Attributes
+
+<Component value={42} />
+
+<Component handler={() => console.log('click')} />
+
+<Component data={{ key: 'value', nested: { a: 1 } }} />
+
+<Component items={[1, 2, 3]} />
+
+<Component text={`template ${literal}`} />
+
+<Component check={condition ? 'a' : 'b'} />
+
+# Spread Attributes
+
+<Component {...props} />
+
+<Component {...{ a: 1, b: 2 }} />
+
+<Component first="a" {...rest} last="z" />
+
+# Mixed Attributes
+
+<Component
+  name="test"
+  value={42}
+  disabled
+  {...extras}
+  className="wrapper"
+/>
+
+<Card
+  title="API Reference"
+  icon="code"
+  href="/api"
+  target={isExternal ? '_blank' : undefined}
+>
+  Card content here.
+</Card>
+
+# Edge Cases
+
+<Component a="1" b='2' c={3} d />
+
+<C x={fn({a: 1})} />
+
+<C data-testid="my-test" aria-label="close" />
+
+<C style={{ color: 'red', fontSize: '14px' }} />

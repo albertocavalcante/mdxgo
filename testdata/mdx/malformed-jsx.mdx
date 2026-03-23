@@ -1,0 +1,61 @@
+---
+title: Malformed JSX (Error Recovery)
+---
+
+# Unclosed Tags
+
+<Component
+
+<Component name="test"
+
+# Missing Closing Tags
+
+<Wrapper>
+  Content without closing tag.
+
+# Stray Closing Tags
+
+</NonExistent>
+
+</Random>
+
+# Invalid Nesting (parser doesn't validate nesting, just tokenizes)
+
+<A>
+<B>
+</A>
+</B>
+
+# Tags with unusual whitespace
+
+<Component   />
+
+<Component
+/>
+
+<  Component />
+
+# Expression edge cases
+
+<Component value={unclosed />
+
+# Almost-JSX (should be paragraphs)
+
+< not a tag
+
+<123 numeric>
+
+# Angle brackets in text
+
+The value a < b is true.
+
+Use 3 < 4 > 2 expressions.
+
+# Empty self-closing
+
+<Component/>
+
+# Double slash
+
+<Component // comment-like
+/>

@@ -1,0 +1,81 @@
+---
+title: JSX Fragment and Namespace Tests
+---
+
+import { Foo } from './Foo'
+
+# Fragments
+
+<>
+
+This is inside a fragment.
+
+</>
+
+<>
+  Fragment with inline content.
+</>
+
+# Closing Fragment
+
+</>
+
+# Member Expressions
+
+<Foo.Bar />
+
+<Foo.Bar.Baz />
+
+<Components.Card title="test">
+  Content inside member expression component.
+</Components.Card>
+
+<UI.Layout.Header />
+
+</UI.Layout.Header>
+
+<A.B.C.D prop="deep" />
+
+# Namespaced Tags
+
+<xml:tag />
+
+<svg:rect width="100" height="100" />
+
+<xlink:href />
+
+</xml:tag>
+
+# Mixed
+
+<Foo.Bar baz="qux">
+
+Paragraph between tags.
+
+</Foo.Bar>
+
+<>
+
+<Foo.Bar />
+
+<xml:ns attr="val" />
+
+</>
+
+# Fragment with expressions
+
+<>
+
+{expression}
+
+</>
+
+# Self-closing member expressions with attributes
+
+<Icons.Arrow direction="up" size={24} />
+
+<Form.Input
+  type="text"
+  name="email"
+  required
+/>

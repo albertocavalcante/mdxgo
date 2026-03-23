@@ -103,10 +103,13 @@ func findMatchingBrace(text string, startPos int) (int, bool) {
 // Returns the total number of bytes consumed (across all lines) from the
 // start of the first line, and whether a match was found.
 func findMatchingBraceInLines(firstLine string, braceOffset int, nextLine func() (string, bool)) (int, bool) {
-	// Build up the text to scan by concatenating lines until we find the match.
-	text := firstLine
+	// Build up the text to scan using a byte buffer to avoid repeated
+	// string concatenation (O(n^2) in the worst case).
+	buf := make([]byte, 0, len(firstLine)*2) //nolint:mnd // pre-allocate ~2x first line
+	buf = append(buf, firstLine...)
 
 	// Try the first line alone.
+	text := string(buf)
 	if end, ok := findMatchingBrace(text, braceOffset); ok {
 		return end, true
 	}
@@ -117,7 +120,8 @@ func findMatchingBraceInLines(firstLine string, braceOffset int, nextLine func()
 		if !ok {
 			break
 		}
-		text += line
+		buf = append(buf, line...)
+		text = string(buf)
 		if end, ok := findMatchingBrace(text, braceOffset); ok {
 			return end, true
 		}

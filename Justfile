@@ -40,6 +40,20 @@ coverage:
     @echo "  (run 'go tool cover -html=coverage.out' for HTML report)"
 
 # ═══════════════════════════════════════════════════════════════════════
+#  Bench
+# ═══════════════════════════════════════════════════════════════════════
+
+# Run benchmarks
+[group('go')]
+bench:
+    go test -bench=. -benchmem -count=3 ./parser | tee bench.txt
+
+# Compare benchmarks (requires benchstat)
+[group('go')]
+bench-compare old="bench-old.txt":
+    go tool benchstat {{old}} bench.txt
+
+# ═══════════════════════════════════════════════════════════════════════
 #  Fuzz
 # ═══════════════════════════════════════════════════════════════════════
 

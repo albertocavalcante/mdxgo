@@ -1,5 +1,17 @@
 package parser
 
+// inlineMarkupChars is a pre-computed lookup table for characters that
+// can start an inline construct, used by containsInlineMarkup.
+//
+//nolint:gochecknoglobals // lookup table is intentionally global for performance
+var inlineMarkupChars = func() [256]bool {
+	var t [256]bool
+	for _, b := range []byte{'`', '\\', '&', '*', '_', '[', ']', '!', '<', '{', '\n', '\r'} {
+		t[b] = true
+	}
+	return t
+}()
+
 // inlineScanner provides character-level scanning over inline content
 // that may span multiple tokens (e.g., multi-line paragraphs).
 // It operates on a concatenated view of the text but tracks which

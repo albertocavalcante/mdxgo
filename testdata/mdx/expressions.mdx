@@ -1,0 +1,74 @@
+---
+title: Expression Tests
+---
+
+import { formatDate } from './utils'
+
+# Block Expressions
+
+{variable}
+
+{1 + 2 + 3}
+
+{`template literal`}
+
+{`template with ${interpolation}`}
+
+{/* JSX comment */}
+
+{/* multi
+   line
+   comment */}
+
+{(() => {
+  const x = 1
+  return x + 2
+})()}
+
+{items.map(item => (
+  <li key={item.id}>{item.name}</li>
+))}
+
+{condition
+  ? 'true branch'
+  : 'false branch'}
+
+{obj.nested.deeply.value}
+
+{array[0]}
+
+{fn(arg1, arg2, { key: 'value' })}
+
+{{a: 1, b: 2, c: {d: 3}}}
+
+{String.raw`raw \n template`}
+
+# Inline Expressions
+
+The value is {x}.
+
+Hello {firstName} {lastName}!
+
+Total: {a + b} items.
+
+Date: {formatDate(new Date())}.
+
+Result: {nested({a: {b: 1}})}.
+
+Empty: {} expression.
+
+Backtick: {`hello ${name}`} world.
+
+## Expressions in Headings
+
+## Chapter {chapter}: {title}
+
+### {dynamicHeading}
+
+## Nested Expressions
+
+Outer {a + {b: 1}.b} value.
+
+{items.map(x => `${x.name}: ${x.value}`).join(', ')}
+
+{fn({a: {b: {c: 1}}})}
