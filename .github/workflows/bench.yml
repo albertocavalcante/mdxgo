@@ -1,0 +1,43 @@
+name: Bench
+
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Number of benchmark iterations (-count)"
+        required: false
+        default: "5"
+      benchtime:
+        description: "Time per benchmark (-benchtime)"
+        required: false
+        default: "1s"
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: Benchmarks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version: stable
+      - name: Run benchmarks
+        run: |
+          go test -bench=. -benchmem \
+            -count=${{ github.event.inputs.count }} \
+            -benchtime=${{ github.event.inputs.benchtime }} \
+            ./parser | tee bench.txt
+      - name: Upload results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: bench-${{ github.sha }}
+          path: bench.txt
+          retention-days: 90

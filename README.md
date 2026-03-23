@@ -278,6 +278,50 @@ Debug a single file with tree dump:
 MDXGO_TEST_FILE=path/to/file.mdx go test -v -run TestLiveSingleFile ./parser
 ```
 
+### Benchmarks
+
+Run the full benchmark suite:
+
+```bash
+just bench                    # runs -count=3, writes bench.txt
+go test -bench=. -benchmem ./parser  # single run
+```
+
+Compare against a previous baseline:
+
+```bash
+cp bench.txt bench-old.txt    # save current baseline
+# ... make changes ...
+just bench                    # new results in bench.txt
+just bench-compare            # benchstat diff
+```
+
+Benchmarks can also be run via GitHub Actions (`Bench` workflow, manual dispatch).
+
+#### Baseline (Apple M4, Go 1.26)
+
+| Benchmark | Input | Throughput | Allocs/op |
+|-----------|-------|-----------|-----------|
+| ParseSmall | 45 B paragraph | 39 MB/s | 62 |
+| ParseMedium | ~1.6 KB mixed | 70 MB/s | 999 |
+| ParseLarge | ~22 KB doc | 59 MB/s | 16,140 |
+| ParseCommonMarkSpec | 652 examples (~15 KB) | 20 MB/s | 31,271 |
+| ParseJSXHeavy | ~5.3 KB synthetic | 40 MB/s | 5,239 |
+| ParseInlineHeavy | ~8 KB emphasis/links | 40 MB/s | 8,672 |
+| ParseJSXHeavyFixture | 1.5 KB testdata | 56 MB/s | 958 |
+| ParseLargeMDXFixture | ~14 KB testdata | 40 MB/s | 11,820 |
+
+| Benchmark | Metric | |
+|-----------|--------|--|
+| FullText (small) | 69 ns/op | 1 alloc |
+| FullText (large) | 24 μs/op | 1 alloc |
+| Walk (large tree) | 6 μs/op | 0 allocs |
+| CountNodes | 7 μs/op | 0 allocs |
+| FindAll | 8 μs/op | 8 allocs |
+| CursorTraversal | 15 μs/op | 3 allocs |
+
+**Analysis.** Parsing throughput ranges from 20–70 MB/s depending on construct density. The CommonMark spec benchmark is lower throughput because spec examples are tiny fragments with high per-parse overhead. Real documents (~1–20 KB) parse at 40–70 MB/s. FullText reconstruction is single-allocation regardless of tree size. Tree traversal via Walk is zero-alloc; Cursor has a fixed 3-allocation overhead for the stack. The inline-heavy benchmark shows inline parsing roughly doubles cost vs block-only content (55 μs → 177 μs for equivalent size), confirming that inline parsing is the primary optimization target for future work.
+
 ## CommonMark Spec Compliance
 
 The parser round-trips all 652 examples from the [CommonMark 0.31.2 spec](https://spec.commonmark.org/0.31.2/):
