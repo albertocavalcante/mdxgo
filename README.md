@@ -20,11 +20,18 @@ func main() {
 
 ## Status
 
-**v0.1 — Block-level parsing**
+**v0.3 — Full MDX parsing**
 
-The current release covers **block-level** CST parsing for CommonMark and MDX. All CommonMark block constructs are supported with 100% spec compliance (652/652 examples). MDX extensions include frontmatter and ESM declarations.
+The current release covers block-level and inline CST parsing for CommonMark and MDX, a full tree modification API, and complete MDX extension support. All CommonMark block and inline constructs are supported with 100% spec compliance (652/652 examples). MDX extensions include frontmatter, ESM declarations, JSX blocks/inline, and expression blocks/inline.
 
-Inline parsing (emphasis, code spans, links, images), full JSX tag parsing, MDX expressions, and tree modification APIs are planned for future releases — see [Roadmap](#roadmap).
+Completed phases:
+- **Phase 1** — Block-level parsing (all CommonMark blocks, MDX frontmatter/ESM)
+- **Phase 2** — Inline parsing (emphasis, code spans, links, images, autolinks, raw HTML, escapes, entities, line breaks)
+- **Phase 3** — MDX JSX (block and inline JSX tags with full attribute support: string, boolean, expression, spread)
+- **Phase 4** — MDX expressions (block and inline brace-balanced expressions)
+- **Phase 5** — Tree modification API (Cursor, Visitor, Walk, Query, Replace, Transform)
+
+MDX JSX tags (block and inline) and MDX expressions (block and inline) are now parsed with full attribute support. See [Roadmap](#roadmap) for remaining work.
 
 ## Why
 
@@ -77,7 +84,8 @@ Whitespace that *does* affect structure — indentation that determines block ne
 | Package | Description |
 |---------|-------------|
 | `syntax` | Core types: `SyntaxKind`, `GreenNode`, `GreenToken`, `SyntaxNode`, `TriviaList`, `FullText` |
-| `parser` | `Parse(src, opts)` — block-level parser with CommonMark and MDX mode |
+| `syntax` | Tree modification: `Cursor`, `Walk`, `Visitor`, `FindAll`, `FindFirst`, `ReplaceChild`, `InsertBefore`, `RemoveChild` |
+| `parser` | `Parse(src, opts)` — two-pass parser: block-level then inline decomposition, with CommonMark and MDX mode |
 | `mdx` | Convenience entry points: `mdx.Parse(src)`, `mdx.ParseCommonMark(src)` |
 | `position` | `LineMap` for offset ↔ line:col conversion |
 
@@ -119,6 +127,49 @@ tok := root.TokenAt(42)
 fmt.Printf("token: %s %q at %d\n", tok.Kind(), tok.Text(), tok.TextOffset())
 ```
 
+### Cursor navigation
+
+```go
+green := mdx.Parse(src)
+cursor := syntax.NewCursor(green)
+
+// Move through the tree
+cursor.FirstChild()  // descend to first child
+cursor.NextSibling() // move to next sibling
+cursor.Parent()      // move back up
+```
+
+### Walk and query
+
+```go
+green := mdx.Parse(src)
+
+// Walk all nodes depth-first
+syntax.Walk(green, func(n *syntax.GreenNode, depth int) syntax.WalkAction {
+    fmt.Printf("%s at depth %d\n", n.Kind, depth)
+    return syntax.Continue
+})
+
+// Find all headings
+headings := syntax.FindAll(green, func(n *syntax.GreenNode) bool {
+    return n.Kind == syntax.ATXHeading
+})
+```
+
+### Tree modification
+
+```go
+green := mdx.Parse(src)
+
+// Replace a child node (structural sharing — only the spine is copied)
+newChild := syntax.TokenElement(syntax.NewGreenToken(syntax.TextToken, "new text\n"))
+modified := syntax.ReplaceChild(green, []int{0}, 0, newChild)
+
+// Insert / remove children
+modified = syntax.InsertBefore(green, 0, newChild)
+modified = syntax.RemoveChild(green, 1)
+```
+
 ### Debug dump
 
 ```go
@@ -134,7 +185,10 @@ Document [45]
   BlankLineNode [1]
     BlankLineToken "\n"
   Paragraph [7]
-    TextToken "World.\n"
+    InlineText [6]
+      TextToken "World."
+    SoftLineBreak [1]
+      SoftBreakToken "\n"
 ```
 
 ## Block-Level Constructs
@@ -156,7 +210,32 @@ The parser handles all CommonMark block constructs plus MDX extensions:
 | Frontmatter | — | ✓ |
 | ESM (import/export) | — | ✓ |
 
+| JSX block | — | ✓ |
+| JSX inline | — | ✓ |
+| Expression block | — | ✓ |
+| Expression inline | — | ✓ |
+
 Indented code blocks and HTML blocks are disabled in MDX mode per the [MDX spec](https://mdxjs.com/docs/what-is-mdx/#markdown).
+
+## Inline Constructs
+
+Inline content within paragraphs and headings is decomposed into structured nodes:
+
+| Construct | Node Kind |
+|-----------|-----------|
+| `*emphasis*` / `_emphasis_` | EmphasisSpan |
+| `**strong**` / `__strong__` | StrongSpan |
+| `` `code` `` | CodeSpan |
+| `[text](url)` / `[text][ref]` | Link |
+| `![alt](url)` | Image |
+| `<https://url>` | AutolinkSpan |
+| `<tag>` (CommonMark only) | RawHTMLSpan |
+| `\*` escaped | BackslashEscape |
+| `&amp;` entity | EntityRef |
+| `{expression}` (MDX only) | ExpressionInline |
+| `<Tag />` (MDX only) | JSXInline |
+| Hard line break | HardLineBreak |
+| Soft line break | SoftLineBreak |
 
 ## Testing
 
@@ -234,10 +313,11 @@ Textual content                  3/  3 passed
 
 ## Roadmap
 
-- [ ] Inline parsing — emphasis, code spans, links, images, delimiter stack
-- [ ] MDX JSX blocks/inline — full JSX tag parsing with attribute support
-- [ ] MDX expressions — brace-balanced JS expression blocks
-- [ ] Tree modification API — `ReplaceNode`, `ReplaceDescendant`, `Visitor`, `Cursor`
+- [x] Block-level parsing — all CommonMark block constructs, 652/652 spec examples
+- [x] Inline parsing — emphasis, code spans, links, images, delimiter stack
+- [x] Tree modification API — `Cursor`, `Walk`, `Visitor`, `FindAll`, `ReplaceChild`, `InsertBefore`, `RemoveChild`
+- [x] MDX expressions — brace-balanced expression blocks and inline expressions
+- [x] MDX JSX blocks/inline — full JSX tag parsing with attribute support
 - [ ] Performance — node interning, arena allocation, incremental reparsing
 - [ ] LSP support — incremental edits, diagnostics integration
 

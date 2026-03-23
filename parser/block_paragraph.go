@@ -42,6 +42,12 @@ func (p *blockParser) parseParagraph(_ lineInfo) {
 		if !p.opts.MDX && li.indent >= indentedCodeIndent {
 			break
 		}
+		if p.opts.MDX && isJSXBlockStart(li) {
+			break
+		}
+		if p.opts.MDX && isExprBlockStart(li) {
+			break
+		}
 
 		// Continuation line.
 		p.builder.token(syntax.TextToken, p.currentLine().Content)

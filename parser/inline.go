@@ -147,7 +147,7 @@ func isInlineTextKind(k syntax.SyntaxKind) bool {
 func containsInlineMarkup(text string) bool {
 	for i := 0; i < len(text); i++ {
 		switch text[i] {
-		case '`', '\\', '&', '*', '_', '[', ']', '!', '<', '\n', '\r':
+		case '`', '\\', '&', '*', '_', '[', ']', '!', '<', '{', '\n', '\r':
 			return true
 		case ' ':
 			// Check for hard line break (2+ spaces before newline).
@@ -194,7 +194,18 @@ func (ip *inlineProcessor) parse() {
 		case '&':
 			ip.tryEntityRef()
 		case '<':
-			ip.tryAutolinkOrRawHTML()
+			if ip.opts.MDX {
+				ip.tryJSXInline()
+			} else {
+				ip.tryAutolinkOrRawHTML()
+			}
+		case '{':
+			if ip.opts.MDX {
+				ip.tryExpressionInline()
+			} else {
+				ip.textBuf = append(ip.textBuf, '{')
+				ip.scanner.advance(1)
+			}
 		case '*', '_':
 			ip.tryEmphasis()
 		case '[':

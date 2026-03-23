@@ -213,22 +213,57 @@ func fuzzSeedsMDX() []string {
 		// Frontmatter + ESM + content
 		"---\ntitle: Page\n---\n\nimport X from 'x'\n\n# Hello\n\nContent.\n",
 
-		// JSX-like content (treated as paragraphs in block-only mode)
+		// JSX block constructs
 		"<Component />\n",
 		"<Component prop=\"value\" />\n",
 		"<Wrapper>\n  content\n</Wrapper>\n",
 		"<A>\n<B>\n<C />\n</B>\n</A>\n",
 		"<Note>\n  **Bold** in JSX\n</Note>\n",
 		"<Card title=\"Test\" icon={icon}>\n  Body\n</Card>\n",
+		"</Component>\n",
+		"<>\n",
+		"</>\n",
+		"<Foo.Bar />\n",
+		"<xml:tag />\n",
+		"<Component disabled />\n",
+		"<Component\n  multiline=\"true\"\n/>\n",
+		"<C {...props} />\n",
+		"<C a=\"1\" b={2} c />\n",
+		"<C name='single' />\n",
 
-		// Expressions (treated as paragraphs in block-only mode)
+		// JSX inline
+		"Hello <Component /> world\n",
+		"# Heading <Badge />\n",
+		"Text <> fragment </>.\n",
+		"A <C name=\"x\" /> B\n",
+
+		// Expression block constructs
 		"{expression}\n",
 		"{1 + 2}\n",
 		"{variable}\n",
 		"{`template ${string}`}\n",
+		"{\n  multiline()\n}\n",
+		"{nested({a: 1})}\n",
+		"{}\n",
+		"{/* comment */}\n",
+		"{unclosed\n",
+		"  {indented}\n",
+
+		// Expression inline
+		"Hello {name}!\n",
+		"{a} and {b}\n",
+		"# {title}\n",
+		"Value: {a + {b: 1}.b}\n",
+
+		// JSX + expressions combined
+		"<Component value={1 + 2}>\n\n{content}\n\n</Component>\n",
+		"<C>{children}</C>\n",
 
 		// Mixed MDX
 		"---\ntitle: Full\n---\n\nimport { A } from 'a'\n\nexport const x = 1\n\n# Title\n\nPara.\n\n- List\n\n> Quote\n\n```js\ncode()\n```\n",
+
+		// Full MDX document with JSX + expressions
+		"---\ntitle: Page\n---\n\nimport { C } from 'c'\n\n# Hello {name}\n\n<C value={42}>\n\nParagraph.\n\n</C>\n\n{footer}\n",
 	}...)
 }
 

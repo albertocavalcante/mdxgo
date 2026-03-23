@@ -116,6 +116,18 @@ func (p *blockParser) parseBlock() {
 		return
 	}
 
+	// JSX block (MDX mode: line starting with <)
+	if p.opts.MDX && isJSXBlockStart(li) {
+		p.parseJSXBlock(li)
+		return
+	}
+
+	// Expression block (MDX mode: line starting with {)
+	if p.opts.MDX && isExprBlockStart(li) {
+		p.parseExpressionBlock(li)
+		return
+	}
+
 	// Fallthrough: paragraph (may become setext heading)
 	p.parseParagraph(li)
 }
